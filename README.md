@@ -1,28 +1,28 @@
 # Customer Churn Survival Analysis
 
-Time-to-event analysis of customer churn using the **IBM Telco Customer Churn** sample. Instead of predicting only whether a customer churns, this project models **retention over time** and identifies factors associated with the timing of churn.
+**Exploratory survival-method demonstration** on IBM's fictional Telco Customer Churn sample. The code maps observed tenure to a duration and a *last-month churn indicator* to a constructed event/censoring variable. Because this is a cross-sectional snapshot, not an inception cohort with observed customer exit times, the resulting Kaplan–Meier/log-rank/Cox outputs **are not validated estimates of population customer lifetimes or retention curves**. The original numeric demonstration is retained, not retroactively certified.
 
 ## Business question
 
-How does customer retention evolve over tenure, which contract groups have meaningfully different survival patterns, and which customer characteristics are associated with higher or lower churn hazard?
+What patterns arise if tenure and the last-month churn label are fed into standard survival estimators, and which diagnostics expose the limits of that construction?
 
 ## Dataset
 
-IBM Telco Customer Churn sample.
+IBM Telco Customer Churn sample (fictional company). IBM describes `Churn` as whether the customer left **within the last month**, not whether an exit was witnessed at the row's lifetime tenure. [IBM dataset definition](https://www.ibm.com/docs/en/cognos-analytics/12.0.x?topic=samples-telco-customer-churn).
 
 - Customers analyzed: **7,032**
 - Observed churn events: **1,869**
 - Overall churn rate: **26.58%**
 
-Customers who had not churned by the end of their observed tenure are treated as right-censored observations.
+**Construction, not verified censoring:** the script treats `Churn=No` as right-censored at tenure and `Churn=Yes` as an event at tenure. The source does not establish this as a longitudinal event/censoring history. Independent censoring, entry-cohort comparability, and exact exit-time identification are **not established**.
 
 ## Analytical workflow
 
-1. Prepared tenure as the time variable and churn as the event indicator.
-2. Estimated the overall retention curve using **Kaplan-Meier** survival analysis.
-3. Compared retention curves across contract types.
-4. Used a **log-rank test** to compare month-to-month and two-year contracts.
-5. Fitted a penalized **Cox proportional-hazards model** using a compact set of interpretable predictors.
+1. Constructed a tenure-duration / last-month-churn indicator mapping for an educational sensitivity demonstration (not observed time-to-exit records).
+2. Computed a **Kaplan–Meier curve under the constructed event/censoring mapping**; it must not be presented as validated population retention.
+3. Compared model-implied curves across contract types within the same unverified mapping.
+4. Computed a **log-rank statistic** for month-to-month versus two-year contracts under the same assumptions; its p-value is not a valid established longitudinal group-survival inference.
+5. Fitted a penalized **Cox proportional-hazards model** and reported only in-sample diagnostics and constructed-risk associations.
 6. Interpreted hazard ratios as conditional associations with churn hazard rather than causal effects.
 
 ## Verified results
@@ -32,12 +32,12 @@ Customers who had not churned by the end of their observed tenure are treated as
 | Customers analyzed | **7,032** |
 | Churn events | **1,869** |
 | Overall churn rate | **26.58%** |
-| Cox concordance index | **0.826** |
-| Significant Cox predictors at 5% | **6** |
+| Cox apparent/in-sample concordance on fitting customers | **0.826** |
+| Nominal Cox p-values below 5% under the constructed model | **6** |
 
-The Kaplan-Meier median survival time was **not reached within the observed horizon**, meaning the estimated survival probability remained above 50% throughout the available follow-up period.
+The constructed Kaplan–Meier curve does not cross 50% in the plotted tenure range. This is **not** an established median customer lifetime: the input label captures last-month departure, not recorded exit-at-tenure for a longitudinal cohort.
 
-The month-to-month versus two-year contract survival curves were extremely different statistically; the computed p-value was so small that it displayed as numerical zero in the notebook output.
+The log-rank output for contract groups is numerically tiny under the constructed mapping. It does **not** validate differences in actual longitudinal survival without an appropriate cohort, event dates and censoring design.
 
 ## Selected hazard-ratio findings
 
@@ -47,13 +47,13 @@ Relative to the model's reference categories and conditional on the included cov
 - **One-year contract:** hazard ratio ≈ **0.175**, also associated with lower churn hazard.
 - **Fiber-optic internet service:** hazard ratio ≈ **3.154**, associated with substantially higher churn hazard than the reference internet-service category.
 
-These are **associations, not causal effects**.
+These are **within-model descriptive coefficients**, neither causal effects nor independently validated population hazard ratios; the survival-data construction itself is not identified.
 
 ## Business interpretation
 
-- Contract structure is strongly associated with retention differences in this sample.
-- Survival analysis adds information that a simple churn classification model does not: it models *when* churn occurs and handles censored customers correctly.
-- High-risk groups identified by the Cox model are useful for prioritizing further investigation or retention experiments, but interventions should be tested before assuming they will reduce churn.
+- Contract type is associated with the snapshot churn flag, but the plotted survival curves do not establish observed longitudinal retention differences.
+- Kaplan–Meier, log-rank and Cox are educational examples here; **correct censoring adjustment cannot be claimed** without a valid event-time/censoring design.
+- The in-sample score and nominal coefficients are unsuitable for ranking real customers or estimating intervention effects. A genuine cohort with exit dates, censoring reasons, time-varying tenure and held-out validation is required before decision use.
 
 ## Technology stack
 
@@ -76,12 +76,14 @@ customer-churn-survival-analysis/
 
 ## Reproducing the analysis
 
-1. Install the packages in `requirements.txt`.
+1. Install the packages in `requirements.txt`. Data loading requires access to the linked IBM-hosted CSV; no offline cache or source hash check is implemented.
 2. Run `analysis.py` in an IPython/Jupyter environment or adapt the `display()` calls to `print()` for a standard Python shell.
 3. Inspect the Kaplan-Meier plots, contract summary, log-rank test, and Cox-model output.
 
 ## Limitations
 
-- Observational data does not establish that contract type or service choice causes churn.
-- Cox-model interpretation depends on the proportional-hazards framework and the predictors included.
-- The dataset is a sample and may not represent another telecom customer population or future period.
+- **Primary identification failure:** IBM defines the response as last-month churn at a cross-sectional snapshot. Mapping it to events occurring at the observed total tenure does not recover event times of an inception cohort. Corresponding survival curves, tests and hazard ratios are exploratory numerical demonstrations only.
+- **Not validated out of sample:** the displayed Cox concordance **0.826** is `cph.concordance_index_` measured on fitting customers. There is no held-out customer evaluation or calibrated forecast.
+- Cox-model interpretation additionally depends on proportional hazards, valid non-informative censoring and correctly measured survival time; those conditions have not been demonstrated.
+- Observational input does not establish causal effects or reliable intervention targets; fictional sample cannot establish external transportability.
+- Results were generated by the prior script, not rerun or retuned in this disclosure correction.
