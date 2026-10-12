@@ -1,0 +1,41 @@
+name: Cross-sectional Survival Disclosure Guard
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis.py'
+      - '.github/workflows/source-disclosure-validation.yml'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  static-disclosure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and explicit scientific limitations
+        run: |
+          python -m py_compile analysis.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          s=Path('analysis.py').read_text()
+          ast.parse(s)
+          for phrase in (
+             'cross-sectional churn label',
+             'NOT established independently censored rows',
+             'NOT validated retention',
+             'FITTING rows (not held out)',
+             'HISTORICAL NUMERIC DEMO ONLY'
+          ):
+              assert phrase in s, phrase
+          assert 'warnings.filterwarnings("ignore")' not in s
+          assert 'VERIFIED PROJECT FACTS' not in s
+          assert 'duration_col="tenure", event_col="event"' in s
+          print('PSEUDO_SURVIVAL_DISCLOSURE_SYNTAX_AND_SCOPE_PASS')
+          PY
