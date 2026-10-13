@@ -11,7 +11,7 @@ What patterns arise if tenure and the last-month churn label are fed into standa
 IBM Telco Customer Churn sample (fictional company). IBM describes `Churn` as whether the customer left **within the last month**, not whether an exit was witnessed at the row's lifetime tenure. [IBM dataset definition](https://www.ibm.com/docs/en/cognos-analytics/12.0.x?topic=samples-telco-customer-churn).
 
 - Customers analyzed: **7,032**
-- Observed churn events: **1,869**
+- Last-month churn-flag positives: **1,869**
 - Overall churn rate: **26.58%**
 
 **Construction, not verified censoring:** the script treats `Churn=No` as right-censored at tenure and `Churn=Yes` as an event at tenure. The source does not establish this as a longitudinal event/censoring history. Independent censoring, entry-cohort comparability, and exact exit-time identification are **not established**.
@@ -23,14 +23,14 @@ IBM Telco Customer Churn sample (fictional company). IBM describes `Churn` as wh
 3. Compared model-implied curves across contract types within the same unverified mapping.
 4. Computed a **log-rank statistic** for month-to-month versus two-year contracts under the same assumptions; its p-value is not a valid established longitudinal group-survival inference.
 5. Fitted a penalized **Cox proportional-hazards model** and reported only in-sample diagnostics and constructed-risk associations.
-6. Interpreted hazard ratios as conditional associations with churn hazard rather than causal effects.
+6. Reported hazard-ratio coefficients within the constructed model; the snapshot does not identify actual lifetime hazards or causal effects.
 
 ## Verified results
 
 | Result | Value |
 |---|---:|
 | Customers analyzed | **7,032** |
-| Churn events | **1,869** |
+| Last-month churn-flag positives | **1,869** |
 | Overall churn rate | **26.58%** |
 | Cox apparent/in-sample concordance on fitting customers | **0.826** |
 | Nominal Cox p-values below 5% under the constructed model | **6** |
